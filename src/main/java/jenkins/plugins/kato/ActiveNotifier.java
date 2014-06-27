@@ -60,10 +60,14 @@ public class ActiveNotifier implements FineGrainedNotifier {
     }
 
     public void completed(AbstractBuild r) {
+        AbstractProject<?, ?> project = r.getProject();
+        AbstractBuild<?, ?> previousBuild = project.getLastBuild().getPreviousBuild();
+        Result previousResult = (previousBuild != null) ? previousBuild.getResult() : Result.SUCCESS;
         Result result = r.getResult();
         if ((result == Result.ABORTED && notifier.getNotifyAborted())
             || (result == Result.FAILURE && notifier.getNotifyFailure())
             || (result == Result.NOT_BUILT && notifier.getNotifyNotBuilt())
+            || (result == Result.SUCCESS && previousResult == Result.FAILURE && notifier.getNotifyFirstSuccess())
             || (result == Result.SUCCESS && notifier.getNotifySuccess())
             || (result == Result.UNSTABLE && notifier.getNotifyUnstable())) {
             getKato(r).publish(getBuildStatusMessage(r), getBuildColor(r));

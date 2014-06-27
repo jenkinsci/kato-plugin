@@ -24,4 +24,7 @@
     <f:entry title="Notify Unstable">
         <f:checkbox name="notifyUnstable" value="true" checked="${instance.getNotifyUnstable()}"/>
     </f:entry>
+    <f:entry title="Notify First Success After Failure">
+        <f:checkbox name="notifyFirstSuccess" value="true" checked="${instance.getNotifyFirstSuccess()}"/>
+    </f:entry>
 </j:jelly>

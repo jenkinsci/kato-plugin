@@ -29,6 +29,7 @@ public class KatoNotifier extends Notifier {
     private boolean notifyNotBuilt;
     private boolean notifySuccess;
     private boolean notifyUnstable;
+    private boolean notifyFirstSuccess;
 
     private static final Logger logger = Logger.getLogger(KatoNotifier.class.getName());
 
@@ -58,6 +59,10 @@ public class KatoNotifier extends Notifier {
         return notifyUnstable;
     }
 
+    public boolean getNotifyFirstSuccess() {
+        return notifyFirstSuccess;
+    }
+
     public String getGlobalRoom() {
         return DESCRIPTOR.getRoom();
     }
@@ -76,7 +81,7 @@ public class KatoNotifier extends Notifier {
     }
 
     @DataBoundConstructor
-    public KatoNotifier(final String room, final String sendAs, boolean startNotification, boolean notifyAborted, boolean notifyFailure, boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable) {
+    public KatoNotifier(final String room, final String sendAs, boolean startNotification, boolean notifyAborted, boolean notifyFailure, boolean notifyNotBuilt, boolean notifySuccess, boolean notifyUnstable, boolean notifyFirstSuccess) {
         super();
         // instance variables
         this.room                = room;
@@ -87,6 +92,7 @@ public class KatoNotifier extends Notifier {
         this.notifyNotBuilt      = notifyNotBuilt;
         this.notifySuccess       = notifySuccess;
         this.notifyUnstable      = notifyUnstable;
+        this.notifyFirstSuccess  = notifyFirstSuccess;
         // validation
         String katoRoom = getInstanceRoom();
         if (katoRoom == null || katoRoom.trim().length() == 0) {
@@ -143,12 +149,13 @@ public class KatoNotifier extends Notifier {
         @Override
         public KatoNotifier newInstance(StaplerRequest sr) throws FormException { // handles config.jelly
             // instance only settings
-            boolean startNotification = sr.getParameter("startNotification") != null;
-            boolean notifyAborted     = sr.getParameter("notifyAborted") != null;
-            boolean notifyFailure     = sr.getParameter("notifyFailure") != null;
-            boolean notifyNotBuilt    = sr.getParameter("notifyNotBuilt") != null;
-            boolean notifySuccess     = sr.getParameter("notifySuccess") != null;
-            boolean notifyUnstable    = sr.getParameter("notifyUnstable") != null;
+            boolean startNotification  = sr.getParameter("startNotification") != null;
+            boolean notifyAborted      = sr.getParameter("notifyAborted") != null;
+            boolean notifyFailure      = sr.getParameter("notifyFailure") != null;
+            boolean notifyNotBuilt     = sr.getParameter("notifyNotBuilt") != null;
+            boolean notifySuccess      = sr.getParameter("notifySuccess") != null;
+            boolean notifyUnstable     = sr.getParameter("notifyUnstable") != null;
+            boolean notifyFirstSuccess = sr.getParameter("notifyFirstSuccess") != null;
             // override global settings if room isn't empty
             String projectRoom = sr.getParameter("katoProjectRoom");
             if ( projectRoom == null || projectRoom.trim().length() == 0 ) {
@@ -157,7 +164,7 @@ public class KatoNotifier extends Notifier {
             // use global value
             sendAs = sr.getParameter("katoSendAs");
             try {
-                return new KatoNotifier(projectRoom, sendAs, startNotification, notifyAborted, notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable);
+                return new KatoNotifier(projectRoom, sendAs, startNotification, notifyAborted, notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable, notifyFirstSuccess);
             } catch (Exception e) {
                 String message = "Failed to initialize kato notifier - check your Kato Notifications configuration settings: " + e.getMessage();
                 logger.warning(message);
