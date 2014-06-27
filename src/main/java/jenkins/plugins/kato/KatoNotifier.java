@@ -33,13 +33,9 @@ public class KatoNotifier extends Notifier {
     private static final Logger logger = Logger.getLogger(KatoNotifier.class.getName());
 
     // getters for project configuration..
-    // Configured room name should be null unless different from descriptor/global values
-    public String getConfiguredRoomName() {
-        if ( getRoom().equals(room) ) {
-            return null;
-        } else {
-            return room;
-        }
+
+    public String getRoom() {
+        return room;
     }
 
     // getters for config.jelly
@@ -62,7 +58,7 @@ public class KatoNotifier extends Notifier {
         return notifyUnstable;
     }
 
-    public String getRoom() {
+    public String getGlobalRoom() {
         return DESCRIPTOR.getRoom();
     }
 
@@ -72,7 +68,7 @@ public class KatoNotifier extends Notifier {
 
     // getters for kato
     private String getInstanceRoom() {
-        return (room == null ? getRoom() : room);
+        return (room == null ? getGlobalRoom() : room);
     }
     private String getInstanceSendAs() {
         String sendAs = Util.fixEmpty(getSendAs());
@@ -163,7 +159,7 @@ public class KatoNotifier extends Notifier {
             try {
                 return new KatoNotifier(projectRoom, sendAs, startNotification, notifyAborted, notifyFailure, notifyNotBuilt, notifySuccess, notifyUnstable);
             } catch (Exception e) {
-                String message = "Failed to initialize kato notifier - check your campfire notifier configuration settings: " + e.getMessage();
+                String message = "Failed to initialize kato notifier - check your Kato Notifications configuration settings: " + e.getMessage();
                 logger.warning(message);
                 throw new FormException(message, e, "");
             }
@@ -172,16 +168,9 @@ public class KatoNotifier extends Notifier {
         @Override
         public boolean configure(StaplerRequest sr, JSONObject formData) throws FormException { // handles global.jelly
             // apply new global settings
-            room = sr.getParameter("katoRoom");
-            sendAs = sr.getParameter("katoSendAs");
-            // validate settings
-            try {
-                new KatoNotifier(room, sendAs, false, false, false, false, false, false);
-            } catch (Exception e) {
-                String message = "Failed to initialize kato notifier - check your campfire notifier configuration settings: " + e.getMessage();
-                logger.warning(message);
-                throw new FormException(message, e, "");
-            }
+            room = sr.getParameter("katoRoom").trim();
+            sendAs = sr.getParameter("katoSendAs").trim();
+            // do not validate settings
             save();
             return super.configure(sr, formData);
         }

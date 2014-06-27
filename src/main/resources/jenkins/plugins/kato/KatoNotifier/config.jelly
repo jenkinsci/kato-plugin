@@ -4,7 +4,7 @@
     See global.jelly for a general discussion about jelly script.
   -->
     <f:entry title="Project Room" description="Optional. Use to send notifications to a room other than the default (${descriptor.getRoom()})" help="${rootURL}/plugin/kato/help-projectConfig-katoRoom.html">
-      <f:textbox name="katoProjectRoom" value="${instance.getConfiguredRoomName()}"/>
+      <f:textbox name="katoProjectRoom" value="${instance.getRoom()}"/>
     </f:entry>
 	<f:entry title="Notify Build Start">
   		<f:checkbox name="startNotification" value="true" checked="${instance.getStartNotification()}"/>

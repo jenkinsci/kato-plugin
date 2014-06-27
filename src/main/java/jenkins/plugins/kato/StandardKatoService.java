@@ -16,7 +16,7 @@ public class StandardKatoService implements KatoService {
 
     public StandardKatoService(String roomId, String from) {
         super();
-        if (roomId == null) {
+        if (roomId == null || roomId == "") {
             this.roomIds = new String[0];
         } else {
             this.roomIds = roomId.split(",");
