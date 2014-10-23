@@ -1,8 +1,24 @@
 package jenkins.plugins.kato;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.http.HttpHost;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 
+import hudson.ProxyConfiguration;
+import hudson.model.Hudson;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,20 +46,61 @@ public class StandardKatoService implements KatoService {
     }
 
     public void publish(String message, String color) {
+
+        // Note this configuration will require the user to add api.kato.im
+        // to cacerts as a trusted certificate, included as api.kato.im.cer
+        //
+        // To import:
+        // keytool -import -alias api.kato.im \
+        //   -keystore $JAVA_HOME/jre/lib/security/cacerts \
+        //   -trustcacerts -file api.kato.im.cer
+
+    	// proxy configuration, if available
+    	CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+    	HttpHost proxy = null;
+    	
+    	if (Hudson.getInstance() != null && Hudson.getInstance().proxy != null) {
+    		
+    		ProxyConfiguration proxyConfiguration = Hudson.getInstance().proxy;
+    		String host = proxyConfiguration.name;
+    		int port = proxyConfiguration.port > 0 ? proxyConfiguration.port : AuthScope.ANY_PORT;
+    		String username = proxyConfiguration.getUserName();
+    		String password = proxyConfiguration.getPassword();
+    		
+            if ( StringUtils.isNotEmpty( host ) ) {
+                if ( StringUtils.isNotEmpty( username ) ) {
+                	Credentials creds = new UsernamePasswordCredentials(username, password );
+                	credentialsProvider.setCredentials(new AuthScope(host, port), creds);
+                }
+            }
+            
+            proxy = new HttpHost(host, port);
+        } 
+    	
+    	// build the client
+    	CloseableHttpClient httpClient = HttpClientBuilder.create()
+    			.useSystemProperties()
+    			.setProxy(proxy)
+    			.setDefaultCredentialsProvider(credentialsProvider)
+    			.build();
+    	
         for (String roomId : roomIds) {
-            HttpClient client = new HttpClient();
+        	
             String url = apiUrl + "/rooms/" + roomId + "/jenkins";
             logger.info("Posting: " + from + " to " + url + ": " + message + " " + color);
-            PostMethod post = new PostMethod(url);
+            HttpPost post = new HttpPost(url);
 
             try {
-                post.addParameter("from", from);
-                post.addParameter("room_id", roomId);
-                post.addParameter("message", message);
-                post.addParameter("color", color);
-                post.addParameter("notify", shouldNotify(color));
-                post.getParams().setContentCharset("UTF-8");
-                client.executeMethod(post);
+            	List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+            	urlParameters.add(new BasicNameValuePair("from", from));
+            	urlParameters.add(new BasicNameValuePair("room_id", roomId));
+            	urlParameters.add(new BasicNameValuePair("message", message));
+            	urlParameters.add(new BasicNameValuePair("color", color));
+            	urlParameters.add(new BasicNameValuePair("notify", shouldNotify(color)));
+            	
+            	post.setEntity(new UrlEncodedFormEntity(urlParameters));
+                httpClient.execute(post);
+                
             } catch (Exception e) {
                 logger.log(Level.WARNING, "Error posting to Kato", e);
             } finally {
