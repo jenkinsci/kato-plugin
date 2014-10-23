@@ -18,9 +18,26 @@ This plugin is available from the [Update Center](https://wiki.jenkins-ci.org/di
 
 3. `$ mvn package`
 
-4. target/kato.hpi is the plugin, upload it to plugin management console (http://example.com:8080/pluginManager/advanced). You have to restart Jenkins in order to find the pluing in the installed plugins list.
+4. target/kato.hpi is the Kato plugin, upload it to your plugin management console (http://example.com:8080/pluginManager/advanced). You have to restart Jenkins in order to find the Kato plugin in the installed plugins list.
 
 ### Development mode
 
-run `mvn hpi:run -Djetty.port=8090`
-for more read [Plugin Tutorial](https://wiki.jenkins-ci.org/display/JENKINS/Plugin+tutorial)
+Run `mvn hpi:run -Djetty.port=8090`
+For more info, please consult [Plugin Tutorial](https://wiki.jenkins-ci.org/display/JENKINS/Plugin+tutorial)
+
+
+### SSL certificate
+
+You can import the Kato SSL certificate manually:
+
+```
+keytool -import -alias api.kato.im \
+  -keystore $JAVA_HOME/jre/lib/security/cacerts \
+  -trustcacerts -file api.kato.im.cer
+```
+
+or use [this script](https://gist.github.com/abs/c0d598996870dda719b3) to import all necessary startssl certificates.
+
+### Proxy
+
+The Kato plugin will reuse the "HTTP Proxy Configuration" of the plugin manager ("Manage Jenkins" -> "Manage Plugins" -> "Advanced").
